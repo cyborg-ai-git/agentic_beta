@@ -8,7 +8,7 @@
 
 **Automate your GitHub workflows and generate videos intelligently.**
 
-🌐 [Visit the Live Project](https://cyborg-ai-git.github.io/agentic_beta/)
+> 🌐 [Visit the Live Project](https://cyborg-ai-git.github.io/agentic_beta/)
 
 ---
 
