@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>HeyGen Avatar - CyborgAI</title>
+    <script src="https://cdn.jsdelivr.net/npm/livekit-client/dist/livekit-client.umd.min.js"></script>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <style>
+        :root {
+            --bg-primary: #1a1a1a;
+            --bg-secondary: #252525;
+            --border-color: #404040;
+            --text-primary: #e0e0e0;
+            --text-secondary: #a0a0a0;
+            --accent-blue: #4a9eff;
+            --button-bg: #3d3d3d;
+            --button-hover: #4d4d4d;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html, body {
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+            background: var(--bg-primary);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            color: var(--text-primary);
+        }
+
+        /* Loading screen */
+        #loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--bg-primary);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease-out;
+        }
+
+        #loading-screen.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .loading-text {
+            color: var(--text-primary);
+            font-size: 14px;
+            margin-bottom: 16px;
+        }
+
+        .spinner {
+            width: 36px;
+            height: 36px;
+            border: 3px solid var(--bg-secondary);
+            border-top-color: var(--accent-blue);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            padding: 8px;
+            gap: 8px;
+        }
+
+        .input-row {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 8px 12px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            color: var(--text-primary);
+            font-size: 13px;
+            outline: none;
+        }
+
+        input[type="text"]:focus {
+            border-color: var(--accent-blue);
+        }
+
+        input[type="text"]::placeholder {
+            color: var(--text-secondary);
+        }
+
+        button {
+            padding: 8px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 13px;
+            cursor: pointer;
+            background: var(--button-bg);
+            color: var(--text-primary);
+            transition: background 0.2s;
+        }
+
+        button:hover {
+            background: var(--button-hover);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #2d7d46, #1e5631);
+            border-color: #3d8d56;
+            color: white;
+        }
+
+        .btn-recording {
+            background: linear-gradient(135deg, #8b3a3a, #6b2a2a) !important;
+            border-color: #ff6b6b !important;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.7;
+            }
+        }
+
+        .video-container {
+            flex: 1;
+            background: #000;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 0;
+        }
+
+        video {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        /* Error popup */
+        #error-popup {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+        }
+
+        #error-popup.visible {
+            display: flex;
+        }
+
+        .error-box {
+            background: var(--bg-secondary);
+            border: 1px solid #ff4444;
+            border-radius: 8px;
+            padding: 24px;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(255, 68, 68, 0.3);
+        }
+
+        .error-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        .error-title {
+            color: #ff6b6b;
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 12px;
+        }
+
+        .error-message {
+            color: #ff6b6b;
+            font-size: 18px;
+            font-weight: 500;
+            margin-bottom: 20px;
+            word-break: break-word;
+        }
+
+        .error-buttons {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+        }
+
+        .btn-refresh {
+            background: linear-gradient(135deg, #4a9eff, #2d7dcc);
+            border-color: #5aafff;
+            color: white;
+            padding: 10px 20px;
+            font-size: 14px;
+        }
+
+        .btn-refresh:hover {
+            background: linear-gradient(135deg, #5aafff, #3d8ddd);
+        }
+
+        .btn-dismiss {
+            background: var(--button-bg);
+            padding: 10px 20px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+
+<body>
+<!-- Loading screen -->
+<div id="loading-screen">
+    <div class="loading-text" id="loading-text">🤓 Connecting to Avatar...</div>
+    <div class="spinner"></div>
+</div>
+
+<!-- Error popup -->
+<div id="error-popup">
+    <div class="error-box">
+        <div class="error-icon">⚠️</div>
+        <div class="error-title">Connection Error</div>
+        <div class="error-message" id="error-message">An error occurred</div>
+        <div class="error-buttons">
+            <button class="btn-refresh" id="refreshBtn">🔄 Refresh</button>
+            <button class="btn-dismiss" id="dismissBtn">✖ Dismiss (To Remove)</button>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <!-- User Message Input -->
+    <div class="input-row">
+        <input id="userMessageInput" type="text" placeholder="Type message..."/>
+        <button id="micBtn" title="Voice input (STT)">🎤</button>
+        <button id="sendBtn" class="btn-primary">📤</button>
+    </div>
+
+    <!-- Video Stream -->
+    <div class="video-container">
+        <video id="mediaElement" autoplay playsinline></video>
+    </div>
+</div>
+
+<script>
+    const API_CONFIG = {apiKey: null, serverUrl: "https://api.heygen.com"};
+    let sessionInfo = null, room = null, mediaStream = null, webSocket = null;
+    let sessionToken = null, isConnected = false;
+    let currentAvatarId = "Wayne_20240711", currentVoiceId = "";
+
+    const loadingScreen = document.getElementById("loading-screen");
+    const loadingText = document.getElementById("loading-text");
+    const mediaElement = document.getElementById("mediaElement");
+    const userMessageInput = document.getElementById("userMessageInput");
+    const micBtn = document.getElementById("micBtn");
+    const sendBtn = document.getElementById("sendBtn");
+    const errorPopup = document.getElementById("error-popup");
+    const errorMessage = document.getElementById("error-message");
+    const refreshBtn = document.getElementById("refreshBtn");
+    const dismissBtn = document.getElementById("dismissBtn");
+
+    function hideLoading() {
+        loadingScreen.classList.add('hidden');
+        setTimeout(() => {
+            loadingScreen.style.display = 'none';
+        }, 500);
+    }
+
+    function showLoading(text) {
+        loadingText.textContent = text;
+        loadingScreen.style.display = 'flex';
+        loadingScreen.classList.remove('hidden');
+    }
+
+    function showError(message) {
+        errorMessage.textContent = message;
+        errorPopup.classList.add('visible');
+        hideLoading();
+    }
+
+    function hideError() {
+        errorPopup.classList.remove('visible');
+    }
+
+    refreshBtn.addEventListener("click", () => {
+        hideError();
+        window.location.reload();
+    });
+
+    dismissBtn.addEventListener("click", () => {
+        hideError();
+    });
+
+    // Speech recognition with permission request
+    let recognition = null, isRecording = false;
+
+    async function initSpeechRecognition() {
+        if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
+            micBtn.disabled = true;
+            micBtn.title = "Speech recognition not supported";
+            return;
+        }
+
+        // Request microphone permission first
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({audio: true});
+            stream.getTracks().forEach(track => track.stop()); // Stop immediately, we just needed permission
+
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = true;
+            recognition.lang = 'en-US';
+
+            recognition.onstart = () => {
+                isRecording = true;
+                micBtn.classList.add('btn-recording');
+                micBtn.textContent = '⏹';
+                notifyParent({type: 'status', message: '🎤 Listening...'});
+            };
+
+            recognition.onend = () => {
+                isRecording = false;
+                micBtn.classList.remove('btn-recording');
+                micBtn.textContent = '🎤';
+            };
+
+            recognition.onresult = (event) => {
+                let finalTranscript = '';
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    if (event.results[i].isFinal) {
+                        finalTranscript += event.results[i][0].transcript;
+                    } else {
+                        userMessageInput.value = event.results[i][0].transcript;
+                    }
+                }
+                if (finalTranscript) {
+                    userMessageInput.value = finalTranscript;
+                    notifyParent({type: 'status', message: '🎤 Recognized: ' + finalTranscript});
+                }
+            };
+
+            recognition.onerror = (event) => {
+                isRecording = false;
+                micBtn.classList.remove('btn-recording');
+                micBtn.textContent = '🎤';
+                notifyParent({type: 'status', message: '🎤 Error: ' + event.error});
+            };
+
+            notifyParent({type: 'status', message: '🎤 Microphone ready'});
+        } catch (err) {
+            micBtn.disabled = true;
+            micBtn.title = "Microphone permission denied";
+            notifyParent({type: 'status', message: '🎤 Permission denied: ' + err.message});
+        }
+    }
+
+    function notifyParent(data) {
+        const message = {source: 'heygen-avatar', ...data};
+        try {
+            // Post to parent window only (avoid duplicate if parent === top)
+            if (window.parent && window.parent !== window) {
+                window.parent.postMessage(message, '*');
+            } else if (window.top && window.top !== window) {
+                // Fallback to top only if parent is self
+                window.top.postMessage(message, '*');
+            }
+        } catch (e) {
+        }
+    }
+
+    // Listen for messages from Rust
+    window.addEventListener('message', async (event) => {
+        const data = event.data;
+        if (data && data.target === 'heygen-avatar') {
+            switch (data.action) {
+                case 'setApiKey':
+                    if (data.apiKey) {
+                        API_CONFIG.apiKey = data.apiKey;
+                        notifyParent({type: 'status', message: 'API key received, starting...'});
+                        // Auto-start when API key is received
+                        if (!isConnected) {
+                            try {
+                                showLoading('🤓 Creating session...');
+                                await createNewSession();
+                                showLoading('🤓 Starting stream...');
+                                await startStreamingSession();
+                            } catch (e) {
+                                notifyParent({type: 'error', error: e.message});
+                                showError(e.message);
+                            }
+                        }
+                    }
+                    break;
+                case 'start':
+                    if (!isConnected && API_CONFIG.apiKey) {
+                        try {
+                            showLoading('🤓 Creating session...');
+                            await createNewSession();
+                            showLoading('🤓 Starting stream...');
+                            await startStreamingSession();
+                        } catch (e) {
+                            notifyParent({type: 'error', error: e.message});
+                            showError(e.message);
+                        }
+                    }
+                    break;
+                case 'stop':
+                    await closeSession();
+                    break;
+                case 'talk':
+                    if (data.text && isConnected) await sendText(data.text, 'talk');
+                    break;
+                case 'repeat':
+                    if (data.text && isConnected) await sendText(data.text, 'repeat');
+                    break;
+                case 'setAvatar':
+                    if (data.avatarId) currentAvatarId = data.avatarId;
+                    break;
+                case 'setVoice':
+                    if (data.voiceId) currentVoiceId = data.voiceId;
+                    break;
+                case 'restart':
+                    showLoading('🤓 Restarting...');
+                    if (isConnected) await closeSession();
+                    if (API_CONFIG.apiKey) {
+                        try {
+                            await createNewSession();
+                            await startStreamingSession();
+                        } catch (e) {
+                            notifyParent({type: 'error', error: e.message});
+                            showError(e.message);
+                        }
+                    }
+                    break;
+                case 'getStatus':
+                    notifyParent({type: 'connectionStatus', connected: isConnected});
+                    break;
+            }
+        }
+    });
+
+    async function getSessionToken() {
+        const response = await fetch(`${API_CONFIG.serverUrl}/v1/streaming.create_token`, {
+            method: "POST",
+            headers: {"Content-Type": "application/json", "X-Api-Key": API_CONFIG.apiKey}
+        });
+        const data = await response.json();
+        if (!response.ok || data.error) throw new Error(data.error?.message || `HTTP ${response.status}`);
+        sessionToken = data.data.token;
+        notifyParent({type: 'status', message: 'Session token obtained'});
+    }
+
+    async function connectWebSocket(sessionId) {
+        const params = new URLSearchParams({
+            session_id: sessionId, session_token: sessionToken,
+            silence_response: false, opening_text: "Hello!", stt_language: "en"
+        });
+        webSocket = new WebSocket(`wss://${new URL(API_CONFIG.serverUrl).hostname}/v1/ws/streaming.chat?${params}`);
+        webSocket.addEventListener("message", (event) => {
+            const eventData = JSON.parse(event.data);
+            if (eventData.type === 'error' || eventData.error) {
+                const errorMsg = eventData.message || eventData.error;
+                notifyParent({type: 'error', error: errorMsg});
+                showError(errorMsg);
+            }
+        });
+        webSocket.addEventListener("error", () => {
+            notifyParent({type: 'error', error: 'WebSocket error'});
+            showError('WebSocket connection error');
+        });
+    }
+
+    async function createNewSession() {
+        if (!sessionToken) await getSessionToken();
+        notifyParent({type: 'status', message: `Creating session: ${currentAvatarId}`});
+
+        const response = await fetch(`${API_CONFIG.serverUrl}/v1/streaming.new`, {
+            method: "POST",
+            headers: {"Content-Type": "application/json", Authorization: `Bearer ${sessionToken}`},
+            body: JSON.stringify({
+                quality: "high", avatar_name: currentAvatarId,
+                voice: {voice_id: currentVoiceId || undefined, rate: 1.0},
+                version: "v2", video_encoding: "H264"
+            })
+        });
+        const data = await response.json();
+        if (!response.ok || data.error) {
+            const err = `${data.error?.code ? `[${data.error.code}] ` : ''}${data.error?.message || data.message}`;
+            throw new Error(err);
+        }
+        sessionInfo = data.data;
+        notifyParent({type: 'status', message: `Session created: ${sessionInfo.session_id}`});
+
+        room = new LivekitClient.Room({adaptiveStream: true, dynacast: true});
+        mediaStream = new MediaStream();
+
+        room.on(LivekitClient.RoomEvent.TrackSubscribed, (track) => {
+            if (track.kind === "video" || track.kind === "audio") {
+                mediaStream.addTrack(track.mediaStreamTrack);
+                if (mediaStream.getVideoTracks().length > 0 && mediaStream.getAudioTracks().length > 0) {
+                    mediaElement.srcObject = mediaStream;
+                    notifyParent({type: 'status', message: 'Media stream ready'});
+                }
+            }
+        });
+
+        room.on(LivekitClient.RoomEvent.Disconnected, (reason) => {
+            isConnected = false;
+            notifyParent({type: 'disconnected', reason});
+        });
+
+        await room.prepareConnection(sessionInfo.url, sessionInfo.access_token);
+        await connectWebSocket(sessionInfo.session_id);
+    }
+
+    async function startStreamingSession() {
+        const response = await fetch(`${API_CONFIG.serverUrl}/v1/streaming.start`, {
+            method: "POST",
+            headers: {"Content-Type": "application/json", Authorization: `Bearer ${sessionToken}`},
+            body: JSON.stringify({session_id: sessionInfo.session_id})
+        });
+        const data = await response.json();
+        if (!response.ok || data.error) throw new Error(data.error?.message || `HTTP ${response.status}`);
+
+        await room.connect(sessionInfo.url, sessionInfo.access_token);
+        isConnected = true;
+        hideLoading();
+        notifyParent({type: 'connected'});
+        notifyParent({type: 'status', message: '✅ Streaming started'});
+    }
+
+    async function sendText(text, taskType = "talk") {
+        if (!sessionInfo) return;
+        await fetch(`${API_CONFIG.serverUrl}/v1/streaming.task`, {
+            method: "POST",
+            headers: {"Content-Type": "application/json", Authorization: `Bearer ${sessionToken}`},
+            body: JSON.stringify({session_id: sessionInfo.session_id, text, task_type: taskType})
+        });
+        notifyParent({type: 'textSent', text, taskType});
+    }
+
+    async function closeSession() {
+        if (!sessionInfo) return;
+        try {
+            await fetch(`${API_CONFIG.serverUrl}/v1/streaming.stop`, {
+                method: "POST",
+                headers: {"Content-Type": "application/json", Authorization: `Bearer ${sessionToken}`},
+                body: JSON.stringify({session_id: sessionInfo.session_id})
+            });
+        } catch (e) {
+        }
+        if (webSocket) webSocket.close();
+        if (room) room.disconnect();
+        mediaElement.srcObject = null;
+        sessionInfo = null;
+        room = null;
+        mediaStream = null;
+        sessionToken = null;
+        isConnected = false;
+        notifyParent({type: 'disconnected', reason: 'closed'});
+    }
+
+    // Event listeners
+    micBtn.addEventListener("click", () => {
+        if (!recognition) return;
+        if (isRecording) recognition.stop();
+        else recognition.start();
+    });
+
+    function sendUserMessage() {
+        const text = userMessageInput.value.trim();
+        if (text) {
+            notifyParent({type: 'userMessage', text});
+            userMessageInput.value = "";
+        }
+    }
+
+    sendBtn.addEventListener("click", sendUserMessage);
+    userMessageInput.addEventListener("keypress", (e) => {
+        if (e.key === "Enter") sendUserMessage();
+    });
+
+    window.addEventListener('beforeunload', () => {
+        if (isConnected) closeSession();
+    });
+
+    // Initialize
+    notifyParent({type: 'ready'});
+    initSpeechRecognition();
+</script>
+</body>
+</html>
