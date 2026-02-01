@@ -5,12 +5,11 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cyborg AI Agentic</title>
-    <link rel="icon" type="image/x-icon" href="favicon.ico">
-    
+    <link rel="icon" type="image/x-icon" href="./favicon.ico">
+
     <!-- Trunk directives -->
-    
-    
-    
+
+
     <style type="text/css">
         /* Base styles */
         html, body {
@@ -21,7 +20,7 @@
             width: 100%;
             background: #1a1a1a;
         }
-        
+
         /* Canvas for egui app */
         canvas {
             margin-right: auto;
@@ -33,7 +32,7 @@
             width: 100%;
             height: 100%;
         }
-        
+
         /* Loading screen container */
         #loading-screen {
             position: fixed;
@@ -49,12 +48,12 @@
             z-index: 9999;
             transition: opacity 0.5s ease-out;
         }
-        
+
         #loading-screen.hidden {
             opacity: 0;
             pointer-events: none;
         }
-        
+
         /* Logo */
         #loading-logo {
             width: 150px;
@@ -62,12 +61,18 @@
             margin-bottom: 30px;
             animation: pulse 2s ease-in-out infinite;
         }
-        
+
         @keyframes pulse {
-            0%, 100% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.05); opacity: 0.8; }
+            0%, 100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            50% {
+                transform: scale(1.05);
+                opacity: 0.8;
+            }
         }
-        
+
         /* Loading text */
         #loading-text {
             color: #e0e0e0;
@@ -76,7 +81,7 @@
             margin-bottom: 20px;
             letter-spacing: 1px;
         }
-        
+
         /* Progress bar container */
         #progress-container {
             width: 300px;
@@ -86,7 +91,7 @@
             overflow: hidden;
             margin-bottom: 15px;
         }
-        
+
         /* Progress bar fill */
         #progress-bar {
             width: 0%;
@@ -95,14 +100,14 @@
             border-radius: 3px;
             transition: width 0.3s ease;
         }
-        
+
         /* Progress percentage text */
         #progress-text {
             color: #888;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
             font-size: 14px;
         }
-        
+
         /* Spinner for indeterminate loading */
         .spinner {
             width: 40px;
@@ -113,82 +118,91 @@
             animation: spin 1s linear infinite;
             margin-top: 20px;
         }
-        
+
         @keyframes spin {
-            to { transform: rotate(360deg); }
+            to {
+                transform: rotate(360deg);
+            }
         }
     </style>
-<link rel="modulepreload" href="/app_cyborgai-8ac5975c19d6e6df.js" crossorigin="anonymous" integrity="sha384-pZv2S0OhF4i06SmadzxAzuOpAC7TEMSSKuQ7hFNIlMdyWhkqrw3Gk3zCG7QUiOX+"><link rel="preload" href="/app_cyborgai-8ac5975c19d6e6df_bg.wasm" crossorigin="anonymous" integrity="sha384-K+I4iZHKZfeBSDYNLTKIHlop3X2uzI1MouVkuyuKAP7zyp9bSYWCynQM3+CrDVNr" as="fetch" type="application/wasm"></head>
+    <link rel="modulepreload" href="./assets/wasm/app_cyborgai-8ac5975c19d6e6df.js" crossorigin="anonymous"
+          integrity="sha384-pZv2S0OhF4i06SmadzxAzuOpAC7TEMSSKuQ7hFNIlMdyWhkqrw3Gk3zCG7QUiOX+">
+    <link rel="preload" href="./assets/wasm/app_cyborgai-8ac5975c19d6e6df_bg.wasm" crossorigin="anonymous"
+          integrity="sha384-K+I4iZHKZfeBSDYNLTKIHlop3X2uzI1MouVkuyuKAP7zyp9bSYWCynQM3+CrDVNr" as="fetch"
+          type="application/wasm">
+</head>
 
 <body>
-    <!-- Loading screen -->
-    <div id="loading-screen">
-        <img id="loading-logo" src="assets/images/logo.png" alt="Cyborg AI Agentic Logo" />
-        <div id="loading-text">Loading Cyborg AI Agentic...</div>
-        <div id="progress-container">
-            <div id="progress-bar"></div>
-        </div>
-        <div id="progress-text">0%</div>
-        <div class="spinner"></div>
+<!-- Loading screen -->
+<div id="loading-screen">
+    <img id="loading-logo" src="./assets/images/logo.png" alt="Cyborg AI Agentic Logo"/>
+    <div id="loading-text">Loading Cyborg AI Agentic...</div>
+    <div id="progress-container">
+        <div id="progress-bar"></div>
     </div>
-    
-    <!-- Canvas for egui app -->
-    <canvas id="canvas"></canvas>
-    
-    <script>
-        // Simulate loading progress while WASM loads
-        let progress = 0;
-        const progressBar = document.getElementById('progress-bar');
-        const progressText = document.getElementById('progress-text');
-        const loadingScreen = document.getElementById('loading-screen');
-        
-        // Simulate progress (WASM loading doesn't provide real progress)
-        const simulateProgress = () => {
-            if (progress < 90) {
-                // Slow down as we approach 90%
-                const increment = Math.max(1, (90 - progress) / 10);
-                progress += increment;
-                progressBar.style.width = progress + '%';
-                progressText.textContent = Math.round(progress) + '%';
-                setTimeout(simulateProgress, 100 + Math.random() * 200);
-            }
-        };
-        
-        // Start simulating progress
-        simulateProgress();
-        
-        // Function to hide loading screen (called when WASM is ready)
-        window.hideLoadingScreen = function() {
-            progress = 100;
-            progressBar.style.width = '100%';
-            progressText.textContent = '100%';
-            
-            setTimeout(() => {
-                loadingScreen.classList.add('hidden');
-                setTimeout(() => {
-                    loadingScreen.style.display = 'none';
-                }, 500);
-            }, 300);
-        };
-        
-        // Fallback: hide loading screen after timeout if WASM doesn't call hideLoadingScreen
+    <div id="progress-text">0%</div>
+    <div class="spinner"></div>
+</div>
+
+<!-- Canvas for egui app -->
+<canvas id="canvas"></canvas>
+
+<script>
+    // Simulate loading progress while WASM loads
+    let progress = 0;
+    const progressBar = document.getElementById('progress-bar');
+    const progressText = document.getElementById('progress-text');
+    const loadingScreen = document.getElementById('loading-screen');
+
+    // Simulate progress (WASM loading doesn't provide real progress)
+    const simulateProgress = () => {
+        if (progress < 90) {
+            // Slow down as we approach 90%
+            const increment = Math.max(1, (90 - progress) / 10);
+            progress += increment;
+            progressBar.style.width = progress + '%';
+            progressText.textContent = Math.round(progress) + '%';
+            setTimeout(simulateProgress, 100 + Math.random() * 200);
+        }
+    };
+
+    // Start simulating progress
+    simulateProgress();
+
+    // Function to hide loading screen (called when WASM is ready)
+    window.hideLoadingScreen = function () {
+        progress = 100;
+        progressBar.style.width = '100%';
+        progressText.textContent = '100%';
+
         setTimeout(() => {
-            if (!loadingScreen.classList.contains('hidden')) {
-                window.hideLoadingScreen();
-            }
-        }, 15000); // 15 second timeout
-    </script>
+            loadingScreen.classList.add('hidden');
+            setTimeout(() => {
+                loadingScreen.style.display = 'none';
+            }, 500);
+        }, 300);
+    };
+
+    // Fallback: hide loading screen after timeout if WASM doesn't call hideLoadingScreen
+    setTimeout(() => {
+        if (!loadingScreen.classList.contains('hidden')) {
+            window.hideLoadingScreen();
+        }
+    }, 15000); // 15 second timeout
+</script>
 
 <script type="module">
-import init, * as bindings from '/assets/wasm/app_cyborgai-8ac5975c19d6e6df.js';
-const wasm = await init({ module_or_path: '/app_cyborgai-8ac5975c19d6e6df_bg.wasm' });
+    import init, * as bindings from './assets/wasm/app_cyborgai-8ac5975c19d6e6df.js';
+
+    const wasm = await init({module_or_path: './assets/wasm/app_cyborgai-8ac5975c19d6e6df_bg.wasm'});
 
 
-window.wasmBindings = bindings;
+    window.wasmBindings = bindings;
 
 
-dispatchEvent(new CustomEvent("TrunkApplicationStarted", {detail: {wasm}}));
+    dispatchEvent(new CustomEvent("TrunkApplicationStarted", {detail: {wasm}}));
 
-</script></body>
+</script>
+</body>
 
 </html>
