@@ -398,12 +398,6 @@ Found a bug? Please open an issue with:
 - Clear description of the problem
 - Steps to reproduce
 - Expected vs. actual behavior
-- System information (OS, Rust version, etc.)
-
-
-## Authors & Contributors
-
-**CyborgAI** - [GitHub Profile](https://github.com/cyborg-ai-git)
 
 ---
 
