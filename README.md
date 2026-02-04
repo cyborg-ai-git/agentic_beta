@@ -398,7 +398,6 @@ Found a bug? Please open an issue with:
 - Clear description of the problem
 - Steps to reproduce
 - Expected vs. actual behavior
-
 ---
 
 ## Acknowledgments
