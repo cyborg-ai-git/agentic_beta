@@ -125,10 +125,10 @@
             }
         }
     </style>
-    <link rel="modulepreload" href="./assets/wasm/app_cyborgai-1dba6ca58b8ada49.js" crossorigin="anonymous"
-          integrity="sha384-pZv2S0OhF4i06SmadzxAzuOpAC7TEMSSKuQ7hFNIlMdyWhkqrw3Gk3zCG7QUiOX+">
-    <link rel="preload" href="./assets/wasm/app_cyborgai-1dba6ca58b8ada49_bg.wasm" crossorigin="anonymous"
-          integrity="sha384-EmFxBzRRX4rxmag7Wz9QMqV7ugV5dmM5gEhqEb6R3aHyYV+Xe0pCcbt7u6IWsqoU" as="fetch"
+    <link rel="modulepreload" href="./assets/wasm/cyborgai-d87f5f127c8b2113.js" crossorigin="anonymous"
+          integrity="sha384-XjKJvT/qWvU3w7oUHnqaNEPZlLVYkvihaU4g1pGX3d4Bs4Pacv7F/dZOvRlGnaEb">
+    <link rel="preload" href="./assets/wasm/cyborgai-d87f5f127c8b2113_bg.wasm" crossorigin="anonymous"
+          integrity="sha384-EyqATxS0ai49C9cLaQ8v6kB928zjPUrqVzTbvza/mdJ+kt4vuuuWyy9gdW3ijH2M" as="fetch"
           type="application/wasm">
 </head>
 
@@ -192,9 +192,9 @@
 </script>
 
 <script type="module">
-    import init, * as bindings from './assets/wasm/app_cyborgai-1dba6ca58b8ada49.js';
+    import init, * as bindings from './assets/wasm/cyborgai-d87f5f127c8b2113.js';
 
-    const wasm = await init({module_or_path: './assets/wasm/app_cyborgai-1dba6ca58b8ada49_bg.wasm'});
+    const wasm = await init({module_or_path: './assets/wasm/cyborgai-d87f5f127c8b2113_bg.wasm'});
 
 
     window.wasmBindings = bindings;
