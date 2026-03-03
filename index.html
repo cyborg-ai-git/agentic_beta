@@ -77,10 +77,10 @@ async function __trunkInitializer(init, source, sourceSize, initializer, initWit
 }
 
 
-import init, * as bindings from './assets/wasm/cyborgai-96d325b28033027f.js';
+import init, * as bindings from './assets/wasm/cyborgai-7cc11c2da16bb317.js';
 import initializer from './assets/wasm/32abf644d29a97fb-initializer.mjs';
 
-const wasm = await __trunkInitializer(init, './assets/wasm/cyborgai-96d325b28033027f_bg.wasm', 12820662, initializer(), true);
+const wasm = await __trunkInitializer(init, './assets/wasm/cyborgai-7cc11c2da16bb317_bg.wasm', 12820488, initializer(), true);
 
 
 window.wasmBindings = bindings;
@@ -211,7 +211,7 @@ dispatchEvent(new CustomEvent("TrunkApplicationStarted", {detail: {wasm}}));
                 }
             }
         </style>
-    <link rel="modulepreload" href="./assets/wasm/cyborgai-96d325b28033027f.js" crossorigin="anonymous" integrity="sha384-ywigwnlXF1GCtZpDCvZLwZh1OPTrRA/6RGfsKxtZ+hMMdR01BNspHyij1m5tznDc"><link rel="modulepreload" href="./assets/wasm/32abf644d29a97fb-initializer.mjs" crossorigin="anonymous" integrity="sha384-vq1cc9NRgFk1j5VPvczeivatWGgxQzznEEzJnPzxOVhWgPNQ4nrlmH5C0ESOfxuQ"><link rel="preload" href="./assets/wasm/cyborgai-96d325b28033027f_bg.wasm" crossorigin="anonymous" integrity="sha384-cp0KTr6L+vZcqDAofUlZrw2WJ4DPFHvimAWLs9SpLt3B4AX8RkYI4vMjJRq7wEhV" as="fetch" type="application/wasm"></head>
+    <link rel="modulepreload" href="./assets/wasm/cyborgai-7cc11c2da16bb317.js" crossorigin="anonymous" integrity="sha384-60mp1fkw8GXcJWfa9SmjDPETKmQ/UeDyUw0GTBoTgMK3EYNXOwz9Y9QkQvLF0dkq"><link rel="modulepreload" href="./assets/wasm/32abf644d29a97fb-initializer.mjs" crossorigin="anonymous" integrity="sha384-vq1cc9NRgFk1j5VPvczeivatWGgxQzznEEzJnPzxOVhWgPNQ4nrlmH5C0ESOfxuQ"><link rel="preload" href="./assets/wasm/cyborgai-7cc11c2da16bb317_bg.wasm" crossorigin="anonymous" integrity="sha384-l6cwshD7OyZpd9eTrxHScc8A5LvJr/nY4DOvVf6DxNc6blUi4Oq1ZG61fVkZnLSQ" as="fetch" type="application/wasm"></head>
 
     <body>
         <!-- Loading screen -->

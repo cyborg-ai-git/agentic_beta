@@ -973,7 +973,7 @@ function __wbg_get_imports() {
             const ret = arg0.hidden;
             return ret;
         },
-        __wbg_hideLoadingScreen_37852b4d49b02bfb: function() {
+        __wbg_hideLoadingScreen_fa92b5dd349cc94e: function() {
             window.hideLoadingScreen();
         },
         __wbg_host_92d607209031b72c: function() { return handleError(function (arg0, arg1) {
