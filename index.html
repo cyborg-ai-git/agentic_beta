@@ -6,6 +6,31 @@
         <title>Cyborg AI Agentic</title>
         <link rel="icon" type="image/x-icon" href="./favicon.ico" />
 
+        <!-- SEC-06: Content Security Policy -->
+        <meta http-equiv="Content-Security-Policy" content="
+            default-src 'self';
+            script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://cdn.jsdelivr.net;
+            connect-src 'self' https://api.heygen.com wss://api.heygen.com
+                        https://api.anthropic.com https://api.openai.com
+                        https://api.github.com https://api.deepseek.com
+                        https://api-us.deepseek.com https://huggingface.co
+                        https://*.livekit.cloud wss://*.livekit.cloud
+                        https://*.livekit.io wss://*.livekit.io
+                        https://cyborgai-master-peer.fly.dev wss://cyborgai-master-peer.fly.dev
+                        https://aistudio.google.com
+                        ws://localhost:* http://localhost:*;
+            style-src 'self' 'unsafe-inline';
+            img-src 'self' data: blob:;
+            frame-src 'self' https://cyborgai.fly.dev;
+            media-src 'self' blob:;
+            worker-src 'self' blob:;
+        " />
+
+        <!-- SEC-02: LiveKit client — pinned version with SRI -->
+        <script src="https://cdn.jsdelivr.net/npm/livekit-client@2.9.1/dist/livekit-client.umd.min.js"
+                integrity="sha384-qHh8MZxg7QXCj+X1yzcbMZRyfCW7GeOH6jq0AIkAxQ5rKDqg7WnoW67wJlzpvybm"
+                crossorigin="anonymous"></script>
+
         <!-- Trunk directives -->
         
         
@@ -77,10 +102,10 @@ async function __trunkInitializer(init, source, sourceSize, initializer, initWit
 }
 
 
-import init, * as bindings from './assets/wasm/cyborgai-7cc11c2da16bb317.js';
+import init, * as bindings from './assets/wasm/cyborgai-ab32bbcdd059a41f.js';
 import initializer from './assets/wasm/32abf644d29a97fb-initializer.mjs';
 
-const wasm = await __trunkInitializer(init, './assets/wasm/cyborgai-7cc11c2da16bb317_bg.wasm', 12820488, initializer(), true);
+const wasm = await __trunkInitializer(init, './assets/wasm/cyborgai-ab32bbcdd059a41f_bg.wasm', 13116731, initializer(), true);
 
 
 window.wasmBindings = bindings;
@@ -211,7 +236,7 @@ dispatchEvent(new CustomEvent("TrunkApplicationStarted", {detail: {wasm}}));
                 }
             }
         </style>
-    <link rel="modulepreload" href="./assets/wasm/cyborgai-7cc11c2da16bb317.js" crossorigin="anonymous" integrity="sha384-60mp1fkw8GXcJWfa9SmjDPETKmQ/UeDyUw0GTBoTgMK3EYNXOwz9Y9QkQvLF0dkq"><link rel="modulepreload" href="./assets/wasm/32abf644d29a97fb-initializer.mjs" crossorigin="anonymous" integrity="sha384-vq1cc9NRgFk1j5VPvczeivatWGgxQzznEEzJnPzxOVhWgPNQ4nrlmH5C0ESOfxuQ"><link rel="preload" href="./assets/wasm/cyborgai-7cc11c2da16bb317_bg.wasm" crossorigin="anonymous" integrity="sha384-l6cwshD7OyZpd9eTrxHScc8A5LvJr/nY4DOvVf6DxNc6blUi4Oq1ZG61fVkZnLSQ" as="fetch" type="application/wasm"></head>
+    <link rel="modulepreload" href="./assets/wasm/cyborgai-ab32bbcdd059a41f.js" crossorigin="anonymous" integrity="sha384-OzZjksKPPphJi3JfQPBHhe9bdFvwo85EMymUFX/kdQ7YqYocJiDdH3vOnyP3DsOC"><link rel="modulepreload" href="./assets/wasm/snippets/app_cyborgai-1ef814786b204f38/inline0.js" crossorigin="anonymous" integrity="sha384-gpBJBXIQu7TfLVOQKlFoLfXS1YiJQOd/djN+b7EWPPQkSJrDAXf/T0Ps38pdPfxN"><link rel="modulepreload" href="./assets/wasm/32abf644d29a97fb-initializer.mjs" crossorigin="anonymous" integrity="sha384-vq1cc9NRgFk1j5VPvczeivatWGgxQzznEEzJnPzxOVhWgPNQ4nrlmH5C0ESOfxuQ"><link rel="preload" href="./assets/wasm/cyborgai-ab32bbcdd059a41f_bg.wasm" crossorigin="anonymous" integrity="sha384-RngC9dTFxutx7O7bQmUycU45xdOKkrPh970TI9nPFpqt0ec5gP0q4BuQgymlhtGL" as="fetch" type="application/wasm"></head>
 
     <body>
         <!-- Loading screen -->
@@ -231,6 +256,128 @@ dispatchEvent(new CustomEvent("TrunkApplicationStarted", {detail: {wasm}}));
 
         <!-- Canvas for egui app -->
         <canvas id="canvas"></canvas>
+
+        <!-- SEC-11: LiveKit JS Bridge — frozen closure scope, no mutable globals -->
+        <script>
+            (function() {
+                "use strict";
+                var _room = null;
+                var _audioCtx = null, _analyser = null, _audioSource = null;
+                var _audioBuf = null, _audioLevel = 0.0;
+
+                Object.defineProperty(window, '_lkBridge', {
+                    value: Object.freeze({
+                        connect: async function(url, token) {
+                            var room = new LivekitClient.Room({ adaptiveStream: false, dynacast: true });
+
+                            room.on(LivekitClient.RoomEvent.TrackSubscribed, function(track, pub_, participant) {
+                                if (track.kind === 'video') {
+                                    var v = document.getElementById('_lk_video');
+                                    if (v) v.remove();
+                                    v = track.attach();
+                                    v.id = '_lk_video';
+                                    v.style.cssText = 'position:fixed;top:0;left:0;width:640px;height:480px;opacity:0.01;pointer-events:none;z-index:-1;';
+                                    document.body.appendChild(v);
+                                } else if (track.kind === 'audio') {
+                                    var a = document.getElementById('_lk_audio');
+                                    if (a) a.remove();
+                                    var audioEl = track.attach();
+                                    audioEl.id = '_lk_audio';
+                                    audioEl.style.cssText = 'position:fixed;visibility:hidden;';
+                                    document.body.appendChild(audioEl);
+
+                                    try {
+                                        var ctx = new (window.AudioContext || window.webkitAudioContext)();
+                                        var analyserNode = ctx.createAnalyser();
+                                        analyserNode.fftSize = 256;
+                                        analyserNode.smoothingTimeConstant = 0.8;
+                                        var source = ctx.createMediaStreamSource(new MediaStream([track.mediaStreamTrack]));
+                                        source.connect(analyserNode);
+                                        if (ctx.state === 'suspended') {
+                                            ctx.resume().catch(function() {});
+                                        }
+                                        _audioCtx = ctx;
+                                        _analyser = analyserNode;
+                                        _audioSource = source;
+                                        _audioBuf = new Uint8Array(analyserNode.frequencyBinCount);
+                                    } catch (e) { /* audio analyser optional */ }
+                                }
+                            });
+
+                            room.on(LivekitClient.RoomEvent.Disconnected, function() {
+                                _room = null;
+                            });
+
+                            await room.connect(url, token);
+                            _room = room;
+                            return "connected";
+                        },
+                        disconnect: function() {
+                            if (_room) { _room.disconnect(); _room = null; }
+                            if (_audioSource) { _audioSource.disconnect(); _audioSource = null; }
+                            if (_audioCtx) { _audioCtx.close(); _audioCtx = null; }
+                            _analyser = null; _audioBuf = null; _audioLevel = 0.0;
+                            var v = document.getElementById('_lk_video'); if (v) v.remove();
+                            var a = document.getElementById('_lk_audio'); if (a) a.remove();
+                        },
+                        getAudioLevel: function() {
+                            if (!_analyser || !_audioBuf) return 0.0;
+                            _analyser.getByteFrequencyData(_audioBuf);
+                            var sum = 0;
+                            for (var i = 0; i < _audioBuf.length; i++) {
+                                var v = _audioBuf[i]; sum += v * v;
+                            }
+                            var rms = Math.sqrt(sum / _audioBuf.length) / 255.0;
+                            _audioLevel = _audioLevel * 0.6 + rms * 0.4;
+                            return _audioLevel;
+                        }
+                    }),
+                    writable: false,
+                    configurable: false,
+                    enumerable: false
+                });
+
+                // Backward-compatible wrappers (non-writable) for wasm_bindgen bindings
+                Object.defineProperty(window, 'livekitConnect', {
+                    value: function(url, token) { return window._lkBridge.connect(url, token); },
+                    writable: false, configurable: false
+                });
+                Object.defineProperty(window, 'livekitDisconnect', {
+                    value: function() { return window._lkBridge.disconnect(); },
+                    writable: false, configurable: false
+                });
+                Object.defineProperty(window, 'getAvatarAudioLevel', {
+                    value: function() { return window._lkBridge.getAudioLevel(); },
+                    writable: false, configurable: false
+                });
+            })();
+        </script>
+
+        <script>
+            // Clipboard fallback for Firefox and restrictive environments.
+            // Uses temporary textarea + execCommand('copy') when Clipboard API fails.
+            window.cyborgaiCopyText = function(text) {
+                // Try modern Clipboard API first
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(text).catch(function() {
+                        // Fallback: textarea + execCommand
+                        _cyborgaiFallbackCopy(text);
+                    });
+                } else {
+                    _cyborgaiFallbackCopy(text);
+                }
+            };
+            function _cyborgaiFallbackCopy(text) {
+                var ta = document.createElement('textarea');
+                ta.value = text;
+                ta.style.cssText = 'position:fixed;left:-9999px;top:-9999px;opacity:0;';
+                document.body.appendChild(ta);
+                ta.focus();
+                ta.select();
+                try { document.execCommand('copy'); } catch(e) {}
+                document.body.removeChild(ta);
+            }
+        </script>
 
         <script>
             // hideLoadingScreen: called from Rust (wasm_bindgen) when eframe app is fully ready.

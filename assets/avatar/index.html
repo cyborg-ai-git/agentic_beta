@@ -281,6 +281,7 @@
     let sessionInfo = null, room = null, mediaStream = null, webSocket = null;
     let sessionToken = null, isConnected = false;
     let currentAvatarId = "Wayne_20240711", currentVoiceId = "";
+    var _parentOrigin = null;
 
     const loadingScreen = document.getElementById("loading-screen");
     const loadingText = document.getElementById("loading-text");
@@ -391,13 +392,14 @@
 
     function notifyParent(data) {
         const message = {source: 'heygen-avatar', ...data};
+        var origin = _parentOrigin || '*';
         try {
             // Post to parent window only (avoid duplicate if parent === top)
             if (window.parent && window.parent !== window) {
-                window.parent.postMessage(message, '*');
+                window.parent.postMessage(message, origin);
             } else if (window.top && window.top !== window) {
                 // Fallback to top only if parent is self
-                window.top.postMessage(message, '*');
+                window.top.postMessage(message, origin);
             }
         } catch (e) {
         }
@@ -406,7 +408,12 @@
     // Listen for messages from Rust
     window.addEventListener('message', async (event) => {
         const data = event.data;
-        if (data && data.target === 'heygen-avatar') {
+        if (!data || data.target !== 'heygen-avatar') return;
+        // Store origin from first valid message
+        if (!_parentOrigin) _parentOrigin = event.origin;
+        // Reject messages from other origins
+        if (event.origin !== _parentOrigin) return;
+        if (data) {
             switch (data.action) {
                 case 'setApiKey':
                     if (data.apiKey) {
@@ -492,7 +499,13 @@
         });
         webSocket = new WebSocket(`wss://${new URL(API_CONFIG.serverUrl).hostname}/v1/ws/streaming.chat?${params}`);
         webSocket.addEventListener("message", (event) => {
-            const eventData = JSON.parse(event.data);
+            var eventData;
+            try {
+                eventData = JSON.parse(event.data);
+            } catch (parseErr) {
+                console.warn('Failed to parse WebSocket message:', parseErr);
+                return;
+            }
             if (eventData.type === 'error' || eventData.error) {
                 const errorMsg = eventData.message || eventData.error;
                 notifyParent({type: 'error', error: errorMsg});
